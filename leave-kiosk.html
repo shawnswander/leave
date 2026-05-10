@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Classroom Restroom Pass</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #1d1d1f;
+      --muted: #6e6e73;
+      --border: #d2d2d7;
+      --green: #d8f3dc;
+      --yellow: #fff3b0;
+      --red: #ffccd5;
+      --blue: #e8f0fe;
+    }
+
+    body.dark-mode {
+      --bg: #1d1d1f;
+      --card: #2a2a2a;
+      --text: #f5f5f7;
+      --muted: #a0a0a5;
+      --border: #424245;
+      --green: #1e4620;
+      --yellow: #4a4000;
+      --red: #5a1f2e;
+      --blue: #1a3a70;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+
+    .app {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 40px;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    select, button {
+      font: inherit;
+      color: var(--text)
+    }
+
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+
+    .roster {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: var(--blue);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover {
+      filter: brightness(0.97);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .status {
+      min-height: 340px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: background 0.3s ease;
+    }
+
+    .status.clear {
+      background: var(--green);
+      color: #000;
+    }
+
+    .status.warning {
+      background: var(--yellow);
+      color: #000;
+    }
+
+    .status.late {
+      background: var(--red);
+      color: #000;
+    }
+
+    .student-name {
+      font-size: 56px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.05em;
+      margin-bottom: 18px;
+      color: var(--text);
+    }
+
+    .timer {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .time-left {
+      font-size: 72px;
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .hour-display {
+      font-size: 28px;
+      color: var(--muted);
+      margin-bottom: 22px;
+    }
+
+    .return-btn {
+      background: #1d1d1f;
+      color: white;
+      min-width: 220px;
+      font-size: 20px;
+    }
+
+    .empty {
+      font-size: 34px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      color: var(--text);
+    }
+
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .small-btn {
+      padding: 8px 10px;
+      font-size: 14px;
+      border-radius: 10px;
+      background: #f2f2f2;
+    }
+
+    .toggle-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .toggle-btn {
+      padding: 10px 16px;
+      font-size: 14px;
+      border-radius: 10px;
+      background: var(--border);
+      color: var(--text);
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .toggle-btn:hover {
+      filter: brightness(0.9);
+    }
+
+    #logSection.hidden {
+      display: none;
+    }
+
+    .edit-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 100px;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .edit-row input[type="text"],
+    .edit-row input[type="time"] {
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font: inherit;
+      width: 100%;
+    }
+
+    .edit-row-header {
+      display: grid;
+      grid-template-columns: 1fr 100px 100px;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    body.hide-clock .time-left {
+      display: none;
+    }
+
+    #toggleContainer.hidden {
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      padding: 9px 6px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .student-name {
+        font-size: 44px;
+        color: var(--text);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="grid">
+      <div class="card">
+        <label for="scheduleSelect">Schedule</label>
+        <select id="scheduleSelect"></select>
+
+        <label for="classSelect">Class</label>
+        <select id="classSelect"></select>
+
+        <div id="roster" class="roster"></div>
+      </div>
+
+      <div id="statusCard" class="card status clear">
+        <div id="statusContent"></div>
+      </div>
+    </section>
+
+    <div style="display:flex; justify-content:center; gap:12px; margin:18px 0;">
+      <button class="toggle-btn" id="showControlsBtn">🔓 Show Controls</button>
+      <button class="toggle-btn" id="hideControlsBtn" style="display:none;">🔒 Hide Controls</button>
+    </div>
+
+    <div class="toggle-container hidden" id="toggleContainer">
+      <button class="toggle-btn" id="darkModeToggle">🌙 Dark Mode</button>
+      <button class="toggle-btn" id="toggleLogBtn">📋 Show Log</button>
+      <button class="toggle-btn" id="toggleClockBtn">⏱️ Hide Clock</button>
+      <button class="toggle-btn" id="editScheduleBtn">⚙️ Edit Schedule</button>
+      <button class="toggle-btn" id="editRosterBtn">👥 Edit Roster</button>
+    </div>
+
+    <!-- Edit Schedule Modal -->
+    <div id="editModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; overflow-y:auto; padding:24px;">
+      <div style="max-width:520px; margin:0 auto; background:var(--card); border-radius:22px; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h2 id="editModalTitle" style="margin:0 0 18px;">Edit Schedule</h2>
+        <div id="editModalRows"></div>
+        <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+          <button class="toggle-btn" onclick="closeEditSchedule()">Cancel</button>
+          <button onclick="saveEditSchedule()" style="background:#1d1d1f; color:white; border-radius:12px; padding:10px 20px;">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Roster Modal -->
+    <div id="editRosterModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; overflow-y:auto; padding:24px;">
+      <div style="max-width:520px; margin:0 auto; background:var(--card); border-radius:22px; padding:28px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <h2 id="editRosterModalTitle" style="margin:0 0 18px;">Edit Roster</h2>
+        <label style="display:block; font-weight:700; margin-bottom:8px;">Students (one per line):</label>
+        <textarea id="rosterTextarea" style="width:100%; height:200px; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--bg); color:var(--text); font:inherit; resize:none;"></textarea>
+        <div style="display:flex; gap:10px; margin-top:20px; justify-content:flex-end;">
+          <button class="toggle-btn" onclick="closeEditRoster()">Cancel</button>
+          <button onclick="saveEditRoster()" style="background:#1d1d1f; color:white; border-radius:12px; padding:10px 20px;">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="card" id="logSection">
+      <div class="log-header">
+        <h2 style="margin:0;">Today’s Log</h2>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Class</th>
+            <th>Name</th>
+            <th>Out</th>
+            <th>Returned</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    // -----------------------------
+    // HARD-CODE YOUR SCHEDULES HERE
+    // Times use 24-hour format.
+    // Passing periods are simply the gaps between classes.
+    // -----------------------------
+    const schedules = {
+      "Regular Schedule": [
+          { name: "1st Hour", start: "07:50", end: "08:37" },
+          { name: "2nd Hour", start: "08:41", end: "09:36" },
+          { name: "3rd Hour", start: "09:40", end: "10:27" },
+          { name: "Lunch", start: "10:31", end: "10:53" },
+          { name: "4th Hour", start: "10:57", end: "11:44" },
+          { name: "5th Hour", start: "11:48", end: "12:37" },
+          { name: "6th Hour", start: "12:41", end: "13:28" },
+          { name: "7th Hour", start: "13:32", end: "14:19" },
+          { name: "8th Hour", start: "14:23", end: "15:10" }
+      ],
+      "Chapel Schedule": [
+        { name: "1st Hour", start: "07:50", end: "08:32" },
+        { name: "Chapel", start: "08:36", end: "09:21" },
+        { name: "2nd Hour", start: "09:25", end: "10:09" },
+        { name: "3rd Hour", start: "10:13", end: "10:55" },
+        { name: "Lunch", start: "10:59", end: "11:19" },
+        { name: "4th Hour", start: "11:23", end: "12:06" },
+        { name: "5th Hour", start: "12:10", end: "12:52" },
+        { name: "6th Hour", start: "12:56", end: "13:38" },
+        { name: "7th Hour", start: "13:42", end: "14:24" },
+        { name: "8th Hour", start: "14:28", end: "15:10" }
+      ],
+      "Special Schedule": [
+        { name: "1st Hour", start: "07:50", end: "08:32" },
+        { name: "Chapel", start: "08:36", end: "09:21" },
+        { name: "2nd Hour", start: "09:25", end: "10:09" },
+        { name: "3rd Hour", start: "10:13", end: "10:55" },
+        { name: "Lunch", start: "10:59", end: "11:19" },
+        { name: "4th Hour", start: "11:23", end: "12:06" },
+        { name: "5th Hour", start: "12:10", end: "12:52" },
+        { name: "6th Hour", start: "12:56", end: "13:38" },
+        { name: "7th Hour", start: "13:42", end: "14:24" },
+        { name: "8th Hour", start: "14:28", end: "15:10" }
+      ]
+    };
+
+    // -----------------------------
+    // HARD-CODE YOUR ROSTERS HERE
+    // Class names should match schedule period names if you want them to line up naturally.
+    // -----------------------------
+      const rosters = {
+        "1st Hour": ["Micah", "Charles", "Judah", "Tate", "Cadence", "Gavin", "Willa", "Kennedy", "Jubilee", "Maxwell", "David", "Grayson", "Lucy", "Emmy", "Ryann", "Maverick", "Zayne", "Lily", "Chase", "Josiah", "Olivia", "Lucas"],
+      "2nd Hour": ["Dillon", "Nathan", "Chloe", "Felicity", "Brayden", "Gabriela", "Camdyn", "Elizabeth", "Eli", "Addisyn", "Noble"],
+      "3rd Hour": ["Student 1", "Student 2", "Student 3"],
+      "4th Hour": ["Ben", "Creed", "Tinsley", "Heath", "Lillian C", "Eli", "Hadley", "Lucia", "Sherriou", "Lillian H", "Mason", "Gage", "Charlize", "Aaron", "Luke L", "Bentley", "Luke N", "Grant", "Finley", "Noah", "Gabriel", "Brynn", "Sadie", "Alexandra"],
+      "5th Hour": ["Bhone", "Vincent", "Austin", "Corbyn", "Nathan", "Aiden", "Avalon", "Chase", "Caleb", "Alexander", "Gabrielle"],
+      "6th Hour":[],
+      "7th Hour": ["Macy", "Duncan", "Maddeline", "Abigail"],
+      "8th Hour":[]
+    };
+
+    const STORAGE_KEY = "restroomPassApp";
+    const DARK_MODE_KEY = "darkModeEnabled";
+    const SCHEDULE_OVERRIDES_KEY = "scheduleOverrides";
+    const ROSTER_OVERRIDES_KEY = "rosterOverrides";
+    const PIN_KEY = "kioskPin";
+
+    function requirePin(callback) {
+      const savedPin = localStorage.getItem(PIN_KEY);
+      if (!savedPin) {
+        // First time: set a PIN
+        const newPin = prompt("No PIN set. Create a PIN for teacher controls:");
+        if (!newPin || newPin.trim() === "") return;
+        const confirmPin = prompt("Confirm PIN:");
+        if (newPin !== confirmPin) {
+          alert("PINs did not match. No PIN was saved.");
+          return;
+        }
+        localStorage.setItem(PIN_KEY, newPin);
+        callback();
+      } else {
+        const entered = prompt("Enter teacher PIN:");
+        if (entered === savedPin) {
+          callback();
+        }
+      }
+    }
+
+    const scheduleSelect = document.getElementById("scheduleSelect");
+    const darkModeToggle = document.getElementById("darkModeToggle");
+    const toggleLogBtn = document.getElementById("toggleLogBtn");
+    const toggleClockBtn = document.getElementById("toggleClockBtn");
+    const editScheduleBtn = document.getElementById("editScheduleBtn");
+    const editRosterBtn = document.getElementById("editRosterBtn");
+    const showControlsBtn = document.getElementById("showControlsBtn");
+    const hideControlsBtn = document.getElementById("hideControlsBtn");
+    const toggleContainer = document.getElementById("toggleContainer");
+    const logSection = document.getElementById("logSection");
+    const classSelect = document.getElementById("classSelect");
+    const rosterDiv = document.getElementById("roster");
+    const statusCard = document.getElementById("statusCard");
+    const statusContent = document.getElementById("statusContent");
+    const logBody = document.getElementById("logBody");
+
+    // Apply any saved schedule overrides.
+    (function loadScheduleOverrides() {
+      const saved = localStorage.getItem(SCHEDULE_OVERRIDES_KEY);
+      if (saved) {
+        try {
+          const overrides = JSON.parse(saved);
+          Object.keys(overrides).forEach(name => {
+            if (schedules[name]) schedules[name] = overrides[name];
+          });
+        } catch(e) {}
+      }
+    })();
+
+    // Apply any saved roster overrides.
+    (function loadRosterOverrides() {
+      const saved = localStorage.getItem(ROSTER_OVERRIDES_KEY);
+      if (saved) {
+        try {
+          const overrides = JSON.parse(saved);
+          Object.keys(overrides).forEach(className => {
+            if (rosters[className]) rosters[className] = overrides[className];
+          });
+        } catch(e) {}
+      }
+    })();
+
+    let state = loadState();
+    let darkModeEnabled = localStorage.getItem(DARK_MODE_KEY) === "true";
+    let logVisible = localStorage.getItem("logVisible") !== "false";
+    let clockVisible = localStorage.getItem("clockVisible") !== "false";
+    let controlsVisible = false;
+
+    function showControls() {
+      controlsVisible = true;
+      toggleContainer.classList.remove("hidden");
+      showControlsBtn.style.display = "none";
+      hideControlsBtn.style.display = "inline-block";
+    }
+
+    function hideControls() {
+      controlsVisible = false;
+      toggleContainer.classList.add("hidden");
+      showControlsBtn.style.display = "inline-block";
+      hideControlsBtn.style.display = "none";
+    }
+
+    function initDarkMode() {
+      if (darkModeEnabled) {
+        document.body.classList.add("dark-mode");
+        darkModeToggle.textContent = "☀️ Light Mode";
+      } else {
+        document.body.classList.remove("dark-mode");
+        darkModeToggle.textContent = "🌙 Dark Mode";
+      }
+    }
+
+    function toggleDarkMode() {
+      darkModeEnabled = !darkModeEnabled;
+      localStorage.setItem(DARK_MODE_KEY, darkModeEnabled);
+      initDarkMode();
+    }
+
+    function toggleLog() {
+      logVisible = !logVisible;
+      localStorage.setItem("logVisible", logVisible);
+      if (logVisible) {
+        logSection.classList.remove("hidden");
+        toggleLogBtn.textContent = "📋 Hide Log";
+      } else {
+        logSection.classList.add("hidden");
+        toggleLogBtn.textContent = "📋 Show Log";
+      }
+    }
+
+    function openEditSchedule() {
+      const modal = document.getElementById("editModal");
+      const rowsDiv = document.getElementById("editModalRows");
+      const scheduleName = state.selectedSchedule;
+      const periods = schedules[scheduleName];
+
+      document.getElementById("editModalTitle").textContent = `Edit: ${scheduleName}`;
+
+      rowsDiv.innerHTML = `
+        <div class="edit-row-header">
+          <span>Period Name</span><span>Start</span><span>End</span>
+        </div>
+      `;
+
+      periods.forEach((period, i) => {
+        const row = document.createElement("div");
+        row.className = "edit-row";
+        row.innerHTML = `
+          <input type="text" data-i="${i}" data-field="name" value="${period.name}" />
+          <input type="time" data-i="${i}" data-field="start" value="${period.start}" />
+          <input type="time" data-i="${i}" data-field="end" value="${period.end}" />
+        `;
+        rowsDiv.appendChild(row);
+      });
+
+      // Add a button to append a new period
+      const addBtn = document.createElement("button");
+      addBtn.textContent = "+ Add Period";
+      addBtn.className = "toggle-btn";
+      addBtn.style.marginTop = "8px";
+      addBtn.onclick = () => {
+        schedules[scheduleName].push({ name: "New Period", start: "08:00", end: "09:00" });
+        openEditSchedule();
+      };
+      rowsDiv.appendChild(addBtn);
+
+      modal.style.display = "block";
+    }
+
+    function closeEditSchedule() {
+      document.getElementById("editModal").style.display = "none";
+    }
+
+    function parseTimeToMinutes(timeString) {
+      if (typeof timeString !== "string") return null;
+      const match = timeString.match(/^(\d{2}):(\d{2})$/);
+      if (!match) return null;
+
+      const hours = Number(match[1]);
+      const minutes = Number(match[2]);
+      if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
+
+      return hours * 60 + minutes;
+    }
+
+    function validateSchedulePeriods(periods) {
+      if (!Array.isArray(periods) || periods.length === 0) {
+        return "Schedule must have at least one period.";
+      }
+
+      const normalized = [];
+
+      for (let i = 0; i < periods.length; i++) {
+        const p = periods[i];
+        const name = (p.name || "").trim();
+
+        if (!name) {
+          return `Period ${i + 1} is missing a name.`;
+        }
+
+        const start = parseTimeToMinutes(p.start);
+        const end = parseTimeToMinutes(p.end);
+
+        if (start === null || end === null) {
+          return `"${name}" has an invalid time. Use HH:MM.`;
+        }
+
+        if (start >= end) {
+          return `"${name}" must end after it starts.`;
+        }
+
+        normalized.push({ index: i, name, start, end });
+      }
+
+      const byStart = [...normalized].sort((a, b) => a.start - b.start);
+      for (let i = 1; i < byStart.length; i++) {
+        const prev = byStart[i - 1];
+        const curr = byStart[i];
+        if (curr.start < prev.end) {
+          return `Periods overlap: "${prev.name}" and "${curr.name}".`;
+        }
+      }
+
+      return null;
+    }
+
+    function saveEditSchedule() {
+      const scheduleName = state.selectedSchedule;
+      const inputs = document.querySelectorAll("#editModalRows input");
+      const updated = [...schedules[scheduleName]].map(p => ({...p}));
+      inputs.forEach(input => {
+        const i = parseInt(input.dataset.i);
+        const field = input.dataset.field;
+        if (!isNaN(i)) {
+          updated[i][field] = field === "name" ? input.value.trim() : input.value;
+        }
+      });
+
+      const validationError = validateSchedulePeriods(updated);
+      if (validationError) {
+        alert(validationError);
+        return;
+      }
+
+      schedules[scheduleName] = updated;
+
+      // Save all overrides
+      const existing = JSON.parse(localStorage.getItem(SCHEDULE_OVERRIDES_KEY) || "{}");
+      existing[scheduleName] = updated;
+      localStorage.setItem(SCHEDULE_OVERRIDES_KEY, JSON.stringify(existing));
+
+      closeEditSchedule();
+      render();
+    }
+
+    function toggleClock() {
+      clockVisible = !clockVisible;
+      localStorage.setItem("clockVisible", clockVisible);
+      if (clockVisible) {
+        document.body.classList.remove("hide-clock");
+        toggleClockBtn.textContent = "⏱️ Hide Clock";
+      } else {
+        document.body.classList.add("hide-clock");
+        toggleClockBtn.textContent = "⏱️ Show Clock";
+      }
+    }
+
+    function openEditRoster() {
+      const modal = document.getElementById("editRosterModal");
+      const textarea = document.getElementById("rosterTextarea");
+      const className = state.selectedClass;
+      const students = rosters[className] || [];
+
+      document.getElementById("editRosterModalTitle").textContent = `Edit Roster: ${className}`;
+      textarea.value = students.join("\n");
+      modal.style.display = "block";
+    }
+
+    function closeEditRoster() {
+      document.getElementById("editRosterModal").style.display = "none";
+    }
+
+    function saveEditRoster() {
+      const className = state.selectedClass;
+      const textarea = document.getElementById("rosterTextarea");
+      const names = textarea.value
+        .split("\n")
+        .map(name => name.trim())
+        .filter(name => name !== "");
+
+      rosters[className] = names;
+
+      // Save all roster overrides
+      const existing = JSON.parse(localStorage.getItem(ROSTER_OVERRIDES_KEY) || "{}");
+      existing[className] = names;
+      localStorage.setItem(ROSTER_OVERRIDES_KEY, JSON.stringify(existing));
+
+      closeEditRoster();
+      render();
+    }
+
+    function todayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function defaultState() {
+      return {
+        date: todayKey(),
+        selectedSchedule: "Regular Schedule",
+        selectedClass: "1st Hour",
+        currentPass: null,
+        log: []
+      };
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return defaultState();
+
+      const parsed = JSON.parse(saved);
+
+      // Keep historical logs across days.
+      return {
+        ...defaultState(),
+        ...parsed,
+        selectedSchedule: parsed.selectedSchedule || "Regular Schedule",
+        selectedClass: parsed.selectedClass || "1st Hour",
+        log: Array.isArray(parsed.log) ? parsed.log : []
+      };
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function formatClock(date) {
+      return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+
+    function formatDuration(ms) {
+      const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      return `${minutes}:${String(seconds).padStart(2, "0")}`;
+    }
+
+    function minutesSince(timestamp) {
+      return (Date.now() - timestamp) / 60000;
+    }
+
+    function parseTimeToday(timeString) {
+      const [hours, minutes] = timeString.split(":").map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+      return date;
+    }
+
+    function getCurrentClassBlock() {
+      const schedule = schedules[state.selectedSchedule];
+      const now = new Date();
+
+      return schedule.find(block => {
+        const start = parseTimeToday(block.start);
+        const end = parseTimeToday(block.end);
+        return now >= start && now <= end;
+      }) || null;
+    }
+
+    function getSelectedClassBlock() {
+      const schedule = schedules[state.selectedSchedule];
+      return schedule.find(block => block.name === state.selectedClass) || null;
+    }
+
+    function autoSelectCurrentClass() {
+      const currentBlock = getCurrentClassBlock();
+      if (currentBlock && currentBlock.name !== state.selectedClass) {
+        state.selectedClass = currentBlock.name;
+        saveState();
+        populateClassSelect();
+        renderRoster();
+      }
+    }
+
+    function getTimeLeftText() {
+      const currentBlock = getCurrentClassBlock();
+
+      if (currentBlock) {
+        const end = parseTimeToday(currentBlock.end);
+        return `${formatDuration(end - Date.now())} left in ${currentBlock.name}`;
+      }
+
+      const schedule = schedules[state.selectedSchedule] || [];
+      const now = Date.now();
+      const nextBlock = schedule.find(block => parseTimeToday(block.start).getTime() > now);
+
+      if (nextBlock) {
+        const nextStart = parseTimeToday(nextBlock.start);
+        return `${formatDuration(nextStart - now)} until ${nextBlock.name} starts`;
+      }
+
+      return "School day is over";
+    }
+
+    function getCurrentHourDisplay() {
+      const currentBlock = getCurrentClassBlock();
+      if (currentBlock) {
+        return `(${currentBlock.name})`;
+      }
+      return "";
+    }
+
+    function getTimeAndHour() {
+      const currentBlock = getCurrentClassBlock();
+
+      if (currentBlock) {
+        const end = parseTimeToday(currentBlock.end);
+        const timeStr = formatDuration(end - Date.now());
+        return { time: timeStr, hour: currentBlock.name };
+      }
+
+      const schedule = schedules[state.selectedSchedule] || [];
+      const now = Date.now();
+      const nextBlock = schedule.find(block => parseTimeToday(block.start).getTime() > now);
+
+      if (nextBlock) {
+        const nextStart = parseTimeToday(nextBlock.start);
+        const timeStr = formatDuration(nextStart - now);
+        return { time: timeStr, hour: `Until ${nextBlock.name}` };
+      }
+
+      return { time: "--:--", hour: "School day is over" };
+    }
+
+    function populateScheduleSelect() {
+      scheduleSelect.innerHTML = "";
+      Object.keys(schedules).forEach(scheduleName => {
+        const option = document.createElement("option");
+        option.value = scheduleName;
+        option.textContent = scheduleName;
+        scheduleSelect.appendChild(option);
+      });
+      scheduleSelect.value = state.selectedSchedule;
+    }
+
+    function populateClassSelect() {
+      classSelect.innerHTML = "";
+      Object.keys(rosters).forEach(className => {
+        const option = document.createElement("option");
+        option.value = className;
+        option.textContent = className;
+        classSelect.appendChild(option);
+      });
+      classSelect.value = state.selectedClass;
+    }
+
+    function renderRoster() {
+      rosterDiv.innerHTML = "";
+      const students = rosters[state.selectedClass] || [];
+
+      students.forEach(name => {
+        const button = document.createElement("button");
+        button.textContent = name;
+        button.disabled = Boolean(state.currentPass);
+        button.onclick = () => startPass(name);
+        rosterDiv.appendChild(button);
+      });
+    }
+
+    function startPass(studentName) {
+      if (state.currentPass) return;
+
+      state.currentPass = {
+        studentName,
+        className: state.selectedClass,
+        scheduleName: state.selectedSchedule,
+        startTime: Date.now()
+      };
+
+      saveState();
+      render();
+    }
+
+    function returnPass() {
+      if (!state.currentPass) return;
+
+      const endTime = Date.now();
+      const pass = state.currentPass;
+      const duration = endTime - pass.startTime;
+
+      // Ignore very short passes (under 60s) to allow quick misclick correction.
+      if (duration >= 60000) {
+        state.log.unshift({
+          className: pass.className,
+          studentName: pass.studentName,
+          startTime: pass.startTime,
+          endTime,
+          duration
+        });
+      }
+
+      state.currentPass = null;
+      saveState();
+      render();
+    }
+
+    function renderStatus() {
+      const pass = state.currentPass;
+      const { time: timeStr, hour: hourStr } = getTimeAndHour();
+
+      if (!pass) {
+        statusCard.className = "card status clear";
+        statusCard.style.background = "";
+        statusCard.style.color = "";
+        statusContent.innerHTML = `
+          <div class="empty">Pass Available</div>
+          <div class="time-left">${timeStr}</div>
+          <div class="hour-display">${hourStr}</div>
+        `;
+        return;
+      }
+
+      const elapsedMinutes = minutesSince(pass.startTime);
+
+      if (elapsedMinutes >= 10) {
+        statusCard.className = "card status late";
+      } else if (elapsedMinutes >= 7) {
+        statusCard.className = "card status warning";
+      } else {
+        statusCard.className = "card status";
+        statusCard.style.background = "var(--blue)";
+        statusCard.style.color = "#000";
+      }
+
+      statusContent.innerHTML = `
+        <div class="student-name">${pass.studentName}</div>
+        <div class="timer">${formatDuration(Date.now() - pass.startTime)}</div>
+        <div class="time-left">${timeStr}</div>
+        <div class="hour-display">${hourStr}</div>
+        <button class="return-btn" onclick="returnPass()">Returned</button>
+      `;
+    }
+
+    function updateLiveStatus() {
+      renderStatus();
+    }
+
+    function renderLog() {
+      logBody.innerHTML = "";
+
+      if (state.log.length === 0) {
+        logBody.innerHTML = `<tr><td colspan="5" style="color: var(--muted);">No restroom passes logged today.</td></tr>`;
+        return;
+      }
+
+      state.log.forEach(entry => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${entry.className}</td>
+          <td>${entry.studentName}</td>
+          <td>${formatClock(new Date(entry.startTime))}</td>
+          <td>${formatClock(new Date(entry.endTime))}</td>
+          <td>${formatDuration(entry.duration)}</td>
+        `;
+        logBody.appendChild(tr);
+      });
+    }
+
+    function render() {
+      populateScheduleSelect();
+      populateClassSelect();
+      renderRoster();
+      renderStatus();
+      renderLog();
+    }
+
+    scheduleSelect.addEventListener("change", () => {
+      state.selectedSchedule = scheduleSelect.value;
+      saveState();
+      render();
+    });
+
+    classSelect.addEventListener("change", () => {
+      state.selectedClass = classSelect.value;
+      saveState();
+      render();
+    });
+
+    darkModeToggle.addEventListener("click", toggleDarkMode);
+    toggleLogBtn.addEventListener("click", toggleLog);
+    toggleClockBtn.addEventListener("click", toggleClock);
+    editScheduleBtn.addEventListener("click", openEditSchedule);
+    editRosterBtn.addEventListener("click", openEditRoster);
+    showControlsBtn.addEventListener("click", () => requirePin(showControls));
+    hideControlsBtn.addEventListener("click", hideControls);
+
+    initDarkMode();
+    if (!logVisible) {
+      logSection.classList.add("hidden");
+      toggleLogBtn.textContent = "📋 Show Log";
+    } else {
+      toggleLogBtn.textContent = "📋 Hide Log";
+    }
+    if (!clockVisible) {
+      document.body.classList.add("hide-clock");
+      toggleClockBtn.textContent = "⏱️ Show Clock";
+    } else {
+      toggleClockBtn.textContent = "⏱️ Hide Clock";
+    }
+    render();
+    setInterval(updateLiveStatus, 1000);
+    setInterval(autoSelectCurrentClass, 30000);
+  </script>
+</body>
+</html>
